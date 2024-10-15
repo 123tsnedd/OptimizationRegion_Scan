@@ -21,6 +21,7 @@ def plot_image(ax, title, image_full, image_cropped, SR_m, masking, xsp_i=None, 
     ax[1].set_title(f"{title} annuli")
     ax[1].imshow(image_cropped)
     ax[1].invert_yaxis()
+    
 
     if annotations:
         ax[0].annotate(annotations, xy=(xsp_i, ysp_i), xytext=(3, 10), arrowprops=dict(facecolor='black', shrink=0.5))
