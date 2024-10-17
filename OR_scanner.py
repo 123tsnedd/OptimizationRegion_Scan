@@ -266,52 +266,56 @@ def process_search_region(
     return processed_images
 
 
-## this will change to run through dir like glob
-# fits_file = "C:\\Users\\snedd\\work\\project\\raw_images\\cen_camsci1_20230316024607829066148.fits"
-fits_file = "cen_camsci1_20230316015110794263351.fits"
-with fits.open(fits_file) as hdul:
-    image_data = np.asanyarray(hdul[0].data, dtype=float)
+if __name__ == "__main__":
+    ## this will change to run through dir like glob
+    # fits_file = "C:\\Users\\snedd\\work\\project\\raw_images\\cen_camsci1_20230316024607829066148.fits"
+    fits_file = "cen_camsci1_20230316015110794263351.fits"
+    with fits.open(fits_file) as hdul:
+        image_data = np.asanyarray(hdul[0].data, dtype=float)
 
-srpix_inner = 87
-srpix_outer = 97
-orDPixAng = 22.5
-wedge_angle = np.radians(orDPixAng)
-planet_radius = 2.5
-steps = int(2 * np.pi / wedge_angle)
+    srpix_inner = 87
+    srpix_outer = 97
+    orDPixAng = 22.5
+    wedge_angle = np.radians(orDPixAng)
+    planet_radius = 2.5
+    steps = int(2 * np.pi / wedge_angle)
 
-global_min = 0
-global_max = 1000
-print(f"global min, max: {global_min}, {global_max}")
+    global_min = 0
+    global_max = 1000
+    print(f"global min, max: {global_min}, {global_max}")
 
+    mask_region = np.zeros_like(image_data)
+    cy, cx = (float(image_data.shape[1] - 1) / 2, float(image_data.shape[0] - 1) / 2)
+    y, x = np.ogrid[: image_data.shape[0], : image_data.shape[1]]
+    mask = ((x - cx) ** 2 + (y - cy) ** 2) <= (srpix_outer**2)
+    mask_region[mask] = 1
 
-mask_region = np.zeros_like(image_data)
-cy, cx = (float(image_data.shape[1] - 1) / 2, float(image_data.shape[0] - 1) / 2)
-y, x = np.ogrid[: image_data.shape[0], : image_data.shape[1]]
-mask = ((x - cx) ** 2 + (y - cy) ** 2) <= (srpix_outer**2)
-mask_region[mask] = 1
+    processed_images = []
+    count = 0
+    for step in range(steps):
+        rotation_angle = np.degrees(step * wedge_angle)
+        rotated_img = rotate(
+            image_data,
+            angle=rotation_angle,
+            center=(cy, cx),
+            order=3,
+            preserve_range=True,
+        )
 
-processed_images = []
-count = 0
-for step in range(steps):
-    rotation_angle = np.degrees(step * wedge_angle)
-    rotated_img = rotate(
-        image_data, angle=rotation_angle, center=(cy, cx), order=3, preserve_range=True
-    )
-
-    search_params = process_search_region(
-        image=rotated_img,
-        srpix_inner=srpix_inner,
-        srpix_outer=srpix_outer,
-        wedge_angle=wedge_angle,
-        vmin=global_min,
-        vmax=global_max,
-        step=step,
-    )
-    processed_images.append(search_params)
-    print(f"step {step}.")
-    if count >= 2:
-        break
-    count += 1
-# can break off to either save or forward to training
-# plt.imshow(resized_cutout_planet, cmap='gray')
-# plt.show()
+        search_params = process_search_region(
+            image=rotated_img,
+            srpix_inner=srpix_inner,
+            srpix_outer=srpix_outer,
+            wedge_angle=wedge_angle,
+            vmin=global_min,
+            vmax=global_max,
+            step=step,
+        )
+        processed_images.append(search_params)
+        print(f"step {step}.")
+        if count >= 2:
+            break
+        count += 1
+    # can break off to either save or forward to training
+    # plt.imshow(resized_cutout_planet, cmap='gray')
+    # plt.show()
