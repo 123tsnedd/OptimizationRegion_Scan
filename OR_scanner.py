@@ -121,6 +121,8 @@ def process_search_region(
     vmax,
     step: int = None,
     annuli_save: bool = False,
+    black_out: bool = True,  # for training purposes
+    plot_images: bool = False,  # True to show the training plots
 ):
     XAP = 0
     YAP = 0.5 * (srpix_outer + srpix_inner)
@@ -136,16 +138,19 @@ def process_search_region(
                 XSP_i, YSP_i = x, y
                 ISPi = image[YSP_i, XSP_i]
 
-                # Create a copy of the original image to blackout pixels
-                image_copy = image.copy()  # only for testing purposes
+                if black_out:
+                    # Create a copy of the original image to blackout pixels
+                    image_copy = image.copy()  # only for testing purposes
 
-                # Black out the first pixel and surrounding pixels
-                radius = 2  # Define the radius of surrounding pixels to black out
-                for dy in range(-radius, radius + 1):
-                    for dx in range(-radius, radius + 1):
-                        ny, nx = YSP_i + dy, XSP_i + dx
-                        if 0 <= ny < image.shape[0] and 0 <= nx < image.shape[1]:
-                            image_copy[ny, nx] = 0
+                    # Black out the first pixel and surrounding pixels
+                    radius = 2  # Define the radius of surrounding pixels to black out
+                    for dy in range(-radius, radius + 1):
+                        for dx in range(-radius, radius + 1):
+                            ny, nx = YSP_i + dy, XSP_i + dx
+                            if 0 <= ny < image.shape[0] and 0 <= nx < image.shape[1]:
+                                image_copy[ny, nx] = 0
+                else:
+                    image_copy = image
 
                 angle = np.degrees(np.arctan2(YSP_i - center_y, XSP_i - center_x)) - 90
                 print(f"angle: {angle}")
@@ -164,18 +169,6 @@ def process_search_region(
                 )
                 print(f"New pixel location after rotation: ({new_x}, {new_y})")
                 """possible shift error due to the image changing shape when rotating?"""
-                # _, _, OR_center_rotated = search_region(
-                #     rotated_img, srpix_inner, srpix_outer, wedge_angle
-                # )
-
-                # # geometric calc of OR center after rotation. make sure to keep accurate
-                # rotated_or_center_y = center_y - 0.5 * (
-                #     srpix_inner + srpix_outer
-                # ) * np.cos(np.radians(angle))
-                # rotated_or_center_x = center_x - 0.5 * (
-                #     srpix_inner + srpix_outer
-                # ) * np.sin(np.radians(angle))
-                # rotated_or_center = (rotated_or_center_y, rotated_or_center_x)
 
                 # Calculate shift to move new pixel location to the Analysis Point (XAP, YAP)
                 shift_x = 0
@@ -210,52 +203,53 @@ def process_search_region(
 
                 processed_images.append(cropped_shifted)
 
-                fig, axs = plt.subplots(3, 2, figsize=(10, 10), layout="tight")
+                if plot_image:
+                    fig, axs = plt.subplots(3, 2, figsize=(10, 10), layout="tight")
 
-                plot_image(
-                    ax=axs[0],
-                    title=f"Original",
-                    xsp_i=XSP_i,
-                    ysp_i=YSP_i,
-                    SR_m=SR_m,
-                    image_full=image_copy,
-                    image_cropped=cropped_image,
-                    masking=masked_image,
-                    annotations=None,
-                    vmin=vmin,
-                    vmax=vmax,
-                )
-                plot_image(
-                    ax=axs[1],
-                    title=f"rotated ",
-                    xsp_i=XSP_i,
-                    ysp_i=YSP_i,
-                    SR_m=SR_m,
-                    image_full=rotated_image,
-                    masking=masked_image_rotated,
-                    image_cropped=cropped_rotated,
-                    annotations=None,
-                    vmin=vmin,
-                    vmax=vmax,
-                )
-                plot_image(
-                    ax=axs[2],
-                    title=f"shifted",
-                    image_full=shifted_image,
-                    image_cropped=cropped_shifted,
-                    xsp_i=XSP_i,
-                    ysp_i=YSP_i,
-                    SR_m=SR_m,
-                    masking=masked_image_shifted,
-                    annotations=None,
-                    vmin=vmin,
-                    vmax=vmax,
-                )
+                    plot_image(
+                        ax=axs[0],
+                        title=f"Original",
+                        xsp_i=XSP_i,
+                        ysp_i=YSP_i,
+                        SR_m=SR_m,
+                        image_full=image_copy,
+                        image_cropped=cropped_image,
+                        masking=masked_image,
+                        annotations=None,
+                        vmin=vmin,
+                        vmax=vmax,
+                    )
+                    plot_image(
+                        ax=axs[1],
+                        title=f"rotated ",
+                        xsp_i=XSP_i,
+                        ysp_i=YSP_i,
+                        SR_m=SR_m,
+                        image_full=rotated_image,
+                        masking=masked_image_rotated,
+                        image_cropped=cropped_rotated,
+                        annotations=None,
+                        vmin=vmin,
+                        vmax=vmax,
+                    )
+                    plot_image(
+                        ax=axs[2],
+                        title=f"shifted",
+                        image_full=shifted_image,
+                        image_cropped=cropped_shifted,
+                        xsp_i=XSP_i,
+                        ysp_i=YSP_i,
+                        SR_m=SR_m,
+                        masking=masked_image_shifted,
+                        annotations=None,
+                        vmin=vmin,
+                        vmax=vmax,
+                    )
 
-                if annuli_save:
-                    plt.savefig(f"../cutouts/step{step}_cutout{count}")
-                plt.show()
-                count += 1
+                    if annuli_save:
+                        plt.savefig(f"../cutouts/step{step}_cutout{count}")
+                    plt.show()
+                    count += 1
     return processed_images
 
 
