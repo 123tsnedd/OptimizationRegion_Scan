@@ -164,18 +164,18 @@ def process_search_region(
                 )
                 print(f"New pixel location after rotation: ({new_x}, {new_y})")
                 """possible shift error due to the image changing shape when rotating?"""
-                _, _, OR_center_rotated = search_region(
-                    rotated_img, srpix_inner, srpix_outer, wedge_angle
-                )
+                # _, _, OR_center_rotated = search_region(
+                #     rotated_img, srpix_inner, srpix_outer, wedge_angle
+                # )
 
-                # geometric calc of OR center after rotation. make sure to keep accurate
-                rotated_or_center_y = center_y - 0.5 * (
-                    srpix_inner + srpix_outer
-                ) * np.cos(np.radians(angle))
-                rotated_or_center_x = center_x - 0.5 * (
-                    srpix_inner + srpix_outer
-                ) * np.sin(np.radians(angle))
-                rotated_or_center = (rotated_or_center_y, rotated_or_center_x)
+                # # geometric calc of OR center after rotation. make sure to keep accurate
+                # rotated_or_center_y = center_y - 0.5 * (
+                #     srpix_inner + srpix_outer
+                # ) * np.cos(np.radians(angle))
+                # rotated_or_center_x = center_x - 0.5 * (
+                #     srpix_inner + srpix_outer
+                # ) * np.sin(np.radians(angle))
+                # rotated_or_center = (rotated_or_center_y, rotated_or_center_x)
 
                 # Calculate shift to move new pixel location to the Analysis Point (XAP, YAP)
                 shift_x = 0
@@ -190,10 +190,7 @@ def process_search_region(
                 )
                 # just the cutouts
                 masked_image = image_copy * OR_m
-                print("masked")
                 masked_image_rotated = rotated_image * OR_m
-                # plt.imshow(masked_image_rotated)
-                # plt.show()
                 masked_image_shifted = shifted_image * OR_m
 
                 non_zero_rows = np.any(masked_image, axis=1)
@@ -212,10 +209,6 @@ def process_search_region(
                 ]
 
                 processed_images.append(cropped_shifted)
-
-                # print(f"Original annuli min: {cropped_image.min()}, max: {cropped_image.max()}")
-                # print(f"Rotated annuli min: {cropped_rotated.min()}, max: {cropped_rotated.max()}")
-                # print(f"Shifted annuli min: {cropped_shifted.min()}, max: {cropped_shifted.max()}")
 
                 fig, axs = plt.subplots(3, 2, figsize=(10, 10), layout="tight")
 
