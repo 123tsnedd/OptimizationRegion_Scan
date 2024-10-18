@@ -54,7 +54,7 @@ class CNN(nn.Module):
             nn.LeakyReLU(negative_slope=0.01, inplace=True),
         )
         self.LinearLayers = nn.Sequential(
-            nn.Linear(1 * 14 * 52, 1000),
+            nn.Linear(64 * 3 * 9, 1000),
             nn.ReLU(inplace=True),
             nn.Dropout(0.5),
             nn.Linear(1000, 800),
@@ -68,6 +68,7 @@ class CNN(nn.Module):
 
     def forward(self, x):
         x = self.ConvLayers(x)
+        print(f"x {x.size()}")
         x = x.view(x.size(0), -1)  # dynamicaly flatten the output
         x = self.LinearLayers(x)
         return x
