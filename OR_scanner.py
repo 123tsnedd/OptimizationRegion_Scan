@@ -255,7 +255,7 @@ def process_search_region(
 
 if __name__ == "__main__":
     ## this will change to run through dir like glob
-    # fits_file = "C:\\Users\\snedd\\work\\project\\raw_images\\cen_camsci1_20230316024607829066148.fits"
+    
     fits_file = "cen_camsci1_20230316015110794263351.fits"
     with fits.open(fits_file) as hdul:
         image_data = np.asanyarray(hdul[0].data, dtype=float)
